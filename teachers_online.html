@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Live Feed</title>
+  <style>
+    body {
+      background: #1e1e2f;
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+    h1 {
+        color: #00f2ff;
+        margin-bottom: 10px;
+    }
+    #videoContainer {
+      width: 80%;
+      max-width: 640px;
+      min-height: 360px;
+      margin-top: 20px;
+      border: 3px solid #00f2ff;
+      border-radius: 10px;
+      overflow: hidden;
+      background-color: #111;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #teacherVideo {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+    .status-message {
+        margin-top: 15px;
+        font-size: 1.1em;
+        color: #ffc107;
+    }
+    .info-text {
+        font-size: 0.9em;
+        color: #ccc;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>Teacher Live Feed</h1>
+  <p class="info-text">Your video feed should appear below. Please allow camera access if prompted by your browser.</p>
+
+  <div id="videoContainer">
+    <video id="teacherVideo" autoplay playsinline muted></video>
+  </div>
+  <div id="status" class="status-message">Initializing camera...</div>
+
+  <script>
+    const videoElement = document.getElementById('teacherVideo');
+    const statusElement = document.getElementById('status');
+    const videoContainer = document.getElementById('videoContainer');
+
+    async function startCamera() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        statusElement.textContent = 'getUserMedia is not supported by your browser.';
+        videoContainer.style.alignItems = 'center';
+        return;
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        videoElement.srcObject = stream;
+        videoElement.onloadedmetadata = () => {
+            statusElement.textContent = 'Camera active.';
+            videoContainer.style.alignItems = 'stretch';
+        };
+        
+        window.localStream = stream;
+
+      } catch (err) {
+        console.error('Error accessing media devices:', err);
+        videoContainer.style.alignItems = 'center';
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          statusElement.textContent = 'Camera access denied. Please allow access in your browser settings and refresh.';
+        } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+          statusElement.textContent = 'No camera found. Please ensure a camera is connected and enabled.';
+        } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+          statusElement.textContent = 'Camera is already in use or cannot be accessed. Try closing other apps using the camera.';
+        } else {
+          statusElement.textContent = 'Error accessing camera: ' + err.message;
+        }
+      }
+    }
+
+    window.addEventListener('load', startCamera);
+  </script>
+</body>
+</html>
