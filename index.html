@@ -58,505 +58,508 @@
     }
   </style>
 </head>
-<body>
-  <div class="container">
-    <h2 id="formTitle">Sign In</h2>
-    <input type="text" id="name" placeholder="Full Name" style="display:none;" />
-    <select id="role" style="display:none;">
-      <option value="">Select Role</option>
-      <option value="student">Student</option>
-      <option value="teacher">Teacher</option>
-    </select>
-    <input type="email" id="email" placeholder="Email" />
-    <div style="position: relative; width: 100%; margin-top: 10px;">
-      <input type="password" id="password" placeholder="Password" required style="width: 100%; padding: 10px; padding-right: 60px; /* Space for toggle */ box-sizing: border-box; border-radius: 5px; border: none;">
-      <span id="togglePassword" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 0.8em; color: #00f2ff; user-select: none;">Show</span>
+<body style="margin:0;">
+  <div style="display:flex; flex-direction:column; min-height:100vh;">
+    <div style="text-align:center; margin-top:30px; margin-bottom:10px; font-size:2em; color:#00f2ff; font-weight:bold;">
+      Welcome to Teachers.Live
     </div>
-    <div class="form-group" style="text-align: left; margin-bottom: 15px; margin-left: 5px;">
-      <input type="checkbox" id="rememberPassword" style="width: auto; vertical-align: middle; margin-right: 5px;">
-      <label for="rememberPassword" style="font-size: 0.9em; color: #ccc;">Remember Password</label>
+    <div style="flex:1; display:flex; justify-content:center; align-items:center;">
+      <div class="container" style="display:none;">
+        <h2 id="formTitle">Sign In</h2>
+        <input type="text" id="name" placeholder="Full Name" style="display:none;" />
+        <select id="role" style="display:none;">
+          <option value="">Select Role</option>
+          <option value="student">Student</option>
+          <option value="teacher">Teacher</option>
+        </select>
+        <input type="email" id="email" placeholder="Email" value="" />
+        <div style="position: relative; width: 100%; margin-top: 10px;">
+          <input type="password" id="password" placeholder="Password" required style="width: 100%; padding: 10px; padding-right: 60px; /* Space for toggle */ box-sizing: border-box; border-radius: 5px; border: none;" value="" />
+          <span id="togglePassword" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 0.8em; color: #00f2ff; user-select: none;">Show</span>
+        </div>
+        <div class="form-group" style="text-align: left; margin-bottom: 15px; margin-left: 5px;">
+          <input type="checkbox" id="rememberPassword" style="width: auto; vertical-align: middle; margin-right: 5px;">
+          <label for="rememberPassword" style="font-size: 0.9em; color: #ccc;">Remember Password</label>
+        </div>
+        <input type="password" id="confirm" placeholder="Confirm Password" style="display:none;" />
+        <button onclick="handleAuth()">Sign In</button>
+        <div class="toggle" onclick="toggleForm()">Don't have an account? Sign Up</div>
+        <div class="error" id="errorMessage"></div>
+      </div>
     </div>
-    <input type="password" id="confirm" placeholder="Confirm Password" style="display:none;" />
-    <button onclick="handleAuth()">Sign In</button>
-    <div class="toggle" onclick="toggleForm()">Don't have an account? Sign Up</div>
-    <div class="error" id="errorMessage"></div>
-  </div>
+    <div id="roleSelectionModal" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #1e2a47; padding: 20px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.7); z-index: 1000; color: #fff; text-align: left; width: 300px;">
+      <h2 style="text-align: center; color: #00f2ff; margin-bottom: 15px;">Select Your Role</h2>
+      <div id="roleInfoMessage" style="font-size: 0.9em; color: #ffc107; margin-bottom: 15px; text-align: center; min-height: 1em;"></div>
+      <label style="display: block; margin-bottom: 10px; font-size: 0.9em;"><input type="checkbox" id="roleStudentCheckbox" value="student" onchange="handleRoleChoice('student')" style="width: auto; margin-right: 8px; vertical-align: middle;"> Student</label>
+      <label style="display: block; margin-bottom: 15px; font-size: 0.9em;"><input type="checkbox" id="roleTeacherCheckbox" value="teacher" onchange="handleRoleChoice('teacher')" style="width: auto; margin-right: 8px; vertical-align: middle;"> Teacher</label>
+      <div class="error" id="roleSelectError" style="margin-top:10px; text-align: center; font-size: 0.9em;"></div>
+    </div>
 
-  <div id="roleSelectionModal" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #1e2a47; padding: 20px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.7); z-index: 1000; color: #fff; text-align: left; width: 300px;">
-    <h2 style="text-align: center; color: #00f2ff; margin-bottom: 15px;">Select Your Role</h2>
-    <div id="roleInfoMessage" style="font-size: 0.9em; color: #ffc107; margin-bottom: 15px; text-align: center; min-height: 1em;"></div>
-    <label style="display: block; margin-bottom: 10px; font-size: 0.9em;"><input type="checkbox" id="roleStudentCheckbox" value="student" onchange="handleRoleChoice('student')" style="width: auto; margin-right: 8px; vertical-align: middle;"> Student</label>
-    <label style="display: block; margin-bottom: 15px; font-size: 0.9em;"><input type="checkbox" id="roleTeacherCheckbox" value="teacher" onchange="handleRoleChoice('teacher')" style="width: auto; margin-right: 8px; vertical-align: middle;"> Teacher</label>
-    <div class="error" id="roleSelectError" style="margin-top:10px; text-align: center; font-size: 0.9em;"></div>
-  </div>
+    <div id="studentInfoModal" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #1e2a47; padding: 20px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.7); z-index: 1001; color: #fff; width: 350px; text-align: left; max-height: 90vh; overflow-y: auto;">
+      <h3 style="text-align: center; color: #00f2ff; margin-bottom: 5px;">Welcome to Teachers.live:</h3>
+      <p style="text-align: center; font-size: 0.9em; margin-bottom: 15px;">Please fill up this form</p>
+      <label for="firstName" style="font-size:0.9em;">First Name:</label>
+      <input type="text" id="firstName" placeholder="First Name" style="width: calc(100% - 22px); margin-bottom:10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+      <label for="lastName" style="font-size:0.9em;">Last Name:</label>
+      <input type="text" id="lastName" placeholder="Last Name" style="width: calc(100% - 22px); margin-bottom:10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+      <label for="phoneNumber" style="font-size:0.9em;">Phone Number:</label>
+      <input type="tel" id="phoneNumber" placeholder="Phone Number" style="width: calc(100% - 22px); margin-bottom:10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+      <label for="whatsappNumber" style="font-size:0.9em;">WhatsApp Number:</label>
+      <input type="tel" id="whatsappNumber" placeholder="WhatsApp Number (if different)" style="width: calc(100% - 22px); margin-bottom:10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+      <label for="studentEmail" style="font-size:0.9em;">Email ID:</label>
+      <input type="email" id="studentEmail" placeholder="Email ID" readonly style="width: calc(100% - 22px); margin-bottom:10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; background-color: #333; color: #aaa;">
+      <label for="currentStudies" style="font-size:0.9em;">What you are studying now?</label>
+      <textarea id="currentStudies" placeholder="e.g., Class 12, B.Tech CSE" style="width: calc(100% - 22px); margin-bottom:10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; min-height: 40px;"></textarea>
+      <label for="interests" style="font-size:0.9em;">Interested in (e.g., Physics, Chemistry, NEET, JEE):</label>
+      <textarea id="interests" placeholder="Topics, subjects, exams" style="width: calc(100% - 22px); margin-bottom:15px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; min-height: 40px;"></textarea>
+      <label for="studentPhoto" style="font-size:0.9em; display:block; margin-bottom:5px;">Please add your Photo:</label>
+      <input type="file" id="studentPhoto" accept="image/*" style="width: calc(100% - 22px); margin-bottom:15px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; background-color: #fff; color: #333;">
+      <button onclick="handleStudentInfoSubmit()" style="width: 100%; padding: 10px; background-color: #00f2ff; color: #000; font-weight: bold; cursor: pointer; border: none; border-radius: 5px; margin-bottom: 10px;">Submit</button>
+      <button onclick="handleSkipStudentInfo()" style="width: 100%; padding: 10px; background-color: #555; color: #fff; font-weight: bold; cursor: pointer; border: none; border-radius: 5px;">Skip for Now</button>
+      <div class="error" id="studentInfoError" style="margin-top:10px; text-align: center; font-size: 0.9em;"></div>
+    </div>
 
-  <div id="studentInfoModal" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #1e2a47; padding: 20px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.7); z-index: 1001; color: #fff; width: 350px; text-align: left; max-height: 90vh; overflow-y: auto;">
-    <h3 style="text-align: center; color: #00f2ff; margin-bottom: 5px;">Welcome to Teachers.live:</h3>
-    <p style="text-align: center; font-size: 0.9em; margin-bottom: 15px;">Please fill up this form</p>
-    <label for="firstName" style="font-size:0.9em;">First Name:</label>
-    <input type="text" id="firstName" placeholder="First Name" style="width: calc(100% - 22px); margin-bottom:10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
-    <label for="lastName" style="font-size:0.9em;">Last Name:</label>
-    <input type="text" id="lastName" placeholder="Last Name" style="width: calc(100% - 22px); margin-bottom:10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
-    <label for="phoneNumber" style="font-size:0.9em;">Phone Number:</label>
-    <input type="tel" id="phoneNumber" placeholder="Phone Number" style="width: calc(100% - 22px); margin-bottom:10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
-    <label for="whatsappNumber" style="font-size:0.9em;">WhatsApp Number:</label>
-    <input type="tel" id="whatsappNumber" placeholder="WhatsApp Number (if different)" style="width: calc(100% - 22px); margin-bottom:10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
-    <label for="studentEmail" style="font-size:0.9em;">Email ID:</label>
-    <input type="email" id="studentEmail" placeholder="Email ID" readonly style="width: calc(100% - 22px); margin-bottom:10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; background-color: #333; color: #aaa;">
-    <label for="currentStudies" style="font-size:0.9em;">What you are studying now?</label>
-    <textarea id="currentStudies" placeholder="e.g., Class 12, B.Tech CSE" style="width: calc(100% - 22px); margin-bottom:10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; min-height: 40px;"></textarea>
-    <label for="interests" style="font-size:0.9em;">Interested in (e.g., Physics, Chemistry, NEET, JEE):</label>
-    <textarea id="interests" placeholder="Topics, subjects, exams" style="width: calc(100% - 22px); margin-bottom:15px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; min-height: 40px;"></textarea>
-    <label for="studentPhoto" style="font-size:0.9em; display:block; margin-bottom:5px;">Please add your Photo:</label>
-    <input type="file" id="studentPhoto" accept="image/*" style="width: calc(100% - 22px); margin-bottom:15px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; background-color: #fff; color: #333;">
-    <button onclick="handleStudentInfoSubmit()" style="width: 100%; padding: 10px; background-color: #00f2ff; color: #000; font-weight: bold; cursor: pointer; border: none; border-radius: 5px; margin-bottom: 10px;">Submit</button>
-    <button onclick="handleSkipStudentInfo()" style="width: 100%; padding: 10px; background-color: #555; color: #fff; font-weight: bold; cursor: pointer; border: none; border-radius: 5px;">Skip for Now</button>
-    <div class="error" id="studentInfoError" style="margin-top:10px; text-align: center; font-size: 0.9em;"></div>
-  </div>
+    <div id="trialInfoModal" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #1e2a47; padding: 25px; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.8); z-index: 1002; color: #fff; width: 380px; text-align: center;">
+      <h3 style="color: #00f2ff; margin-bottom: 15px;">Trial Information</h3>
+      <p style="font-size: 0.95em; margin-bottom: 10px;">You are in a trial version now. The trial is valid for <strong>3 days</strong>.</p>
+      <p style="font-size: 0.95em; margin-bottom: 20px;">After the trial, please subscribe to continue enjoying our services.</p>
+      <label style="display: block; margin-bottom: 20px; font-size: 0.9em; text-align: left; margin-left: 20px;">
+        <input type="checkbox" id="trialAcknowledgeCheckbox" style="vertical-align: middle; margin-right: 8px;"> I understand the trial terms.
+      </label>
+      <button onclick="handleTrialAcknowledge()" style="width: 80%; padding: 12px; background-color: #00f2ff; color: #000; font-weight: bold; cursor: pointer; border: none; border-radius: 5px;">Proceed to App</button>
+      <div class="error" id="trialInfoError" style="margin-top:15px; font-size: 0.9em;"></div>
+    </div>
 
-  <div id="trialInfoModal" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #1e2a47; padding: 25px; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.8); z-index: 1002; color: #fff; width: 380px; text-align: center;">
-    <h3 style="color: #00f2ff; margin-bottom: 15px;">Trial Information</h3>
-    <p style="font-size: 0.95em; margin-bottom: 10px;">You are in a trial version now. The trial is valid for <strong>3 days</strong>.</p>
-    <p style="font-size: 0.95em; margin-bottom: 20px;">After the trial, please subscribe to continue enjoying our services.</p>
-    <label style="display: block; margin-bottom: 20px; font-size: 0.9em; text-align: left; margin-left: 20px;">
-      <input type="checkbox" id="trialAcknowledgeCheckbox" style="vertical-align: middle; margin-right: 8px;"> I understand the trial terms.
-    </label>
-    <button onclick="handleTrialAcknowledge()" style="width: 80%; padding: 12px; background-color: #00f2ff; color: #000; font-weight: bold; cursor: pointer; border: none; border-radius: 5px;">Proceed to App</button>
-    <div class="error" id="trialInfoError" style="margin-top:15px; font-size: 0.9em;"></div>
-  </div>
+    <div id="teacherInfoModal" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #1e2a47; padding: 20px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.7); z-index: 1001; color: #fff; width: 400px; text-align: left; max-height: 90vh; overflow-y: auto;">
+      <h3 style="text-align: center; color: #00f2ff; margin-bottom: 5px;">Teacher Information</h3>
+      <p style="text-align: center; font-size: 0.9em; margin-bottom: 15px;">Please provide your details.</p>
+      
+      <label for="teacherFirstName" style="font-size:0.9em;">First Name:</label>
+      <input type="text" id="teacherFirstName" placeholder="First Name" style="width: calc(100% - 22px); margin-bottom:10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+      
+      <label for="teacherLastName" style="font-size:0.9em;">Last Name:</label>
+      <input type="text" id="teacherLastName" placeholder="Last Name" style="width: calc(100% - 22px); margin-bottom:10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+      
+      <label for="teacherPhoneNumber" style="font-size:0.9em;">Phone Number:</label>
+      <input type="tel" id="teacherPhoneNumber" placeholder="Phone Number" style="width: calc(100% - 22px); margin-bottom:10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+      
+      <label for="teacherWhatsappNumber" style="font-size:0.9em;">WhatsApp Number (Optional):</label>
+      <input type="tel" id="teacherWhatsappNumber" placeholder="WhatsApp Number" style="width: calc(100% - 22px); margin-bottom:10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+      
+      <label for="teacherEmail" style="font-size:0.9em;">Email ID:</label>
+      <input type="email" id="teacherEmail" placeholder="Email ID" readonly style="width: calc(100% - 22px); margin-bottom:10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; background-color: #333; color: #aaa;">
+      
+      <label for="teacherSubjects" style="font-size:0.9em;">Subjects I can teach (e.g., Physics, Chemistry, NEET, JEE):</label>
+      <textarea id="teacherSubjects" placeholder="Comma-separated subjects" style="width: calc(100% - 22px); margin-bottom:10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; min-height: 60px;"></textarea>
+      
+      <label for="teacherResume" style="font-size:0.9em; display:block; margin-bottom:5px;">Upload Resume (.pdf, .doc, .docx):</label>
+      <input type="file" id="teacherResume" accept=".pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="width: calc(100% - 22px); margin-bottom:10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; background-color: #fff; color: #333;">
+      
+      <label for="teacherPhoto" style="font-size:0.9em; display:block; margin-bottom:5px;">Upload Photo (image/*):</label>
+      <input type="file" id="teacherPhoto" accept="image/*" style="width: calc(100% - 22px); margin-bottom:15px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; background-color: #fff; color: #333;">
+      
+      <button onclick="handleTeacherInfoSubmit()" style="width: 100%; padding: 10px; background-color: #00f2ff; color: #000; font-weight: bold; cursor: pointer; border: none; border-radius: 5px; margin-bottom: 10px;">Submit Teacher Details</button>
+      <button onclick="handleSkipTeacherInfo()" style="width: 100%; padding: 10px; background-color: #555; color: #fff; font-weight: bold; cursor: pointer; border: none; border-radius: 5px;">Skip for Now</button>
+      <div class="error" id="teacherInfoError" style="margin-top:10px; text-align: center; font-size: 0.9em;"></div>
+    </div>
 
-  <div id="teacherInfoModal" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #1e2a47; padding: 20px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.7); z-index: 1001; color: #fff; width: 400px; text-align: left; max-height: 90vh; overflow-y: auto;">
-    <h3 style="text-align: center; color: #00f2ff; margin-bottom: 5px;">Teacher Information</h3>
-    <p style="text-align: center; font-size: 0.9em; margin-bottom: 15px;">Please provide your details.</p>
-    
-    <label for="teacherFirstName" style="font-size:0.9em;">First Name:</label>
-    <input type="text" id="teacherFirstName" placeholder="First Name" style="width: calc(100% - 22px); margin-bottom:10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
-    
-    <label for="teacherLastName" style="font-size:0.9em;">Last Name:</label>
-    <input type="text" id="teacherLastName" placeholder="Last Name" style="width: calc(100% - 22px); margin-bottom:10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
-    
-    <label for="teacherPhoneNumber" style="font-size:0.9em;">Phone Number:</label>
-    <input type="tel" id="teacherPhoneNumber" placeholder="Phone Number" style="width: calc(100% - 22px); margin-bottom:10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
-    
-    <label for="teacherWhatsappNumber" style="font-size:0.9em;">WhatsApp Number (Optional):</label>
-    <input type="tel" id="teacherWhatsappNumber" placeholder="WhatsApp Number" style="width: calc(100% - 22px); margin-bottom:10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
-    
-    <label for="teacherEmail" style="font-size:0.9em;">Email ID:</label>
-    <input type="email" id="teacherEmail" placeholder="Email ID" readonly style="width: calc(100% - 22px); margin-bottom:10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; background-color: #333; color: #aaa;">
-    
-    <label for="teacherSubjects" style="font-size:0.9em;">Subjects I can teach (e.g., Physics, Chemistry, NEET, JEE):</label>
-    <textarea id="teacherSubjects" placeholder="Comma-separated subjects" style="width: calc(100% - 22px); margin-bottom:10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; min-height: 60px;"></textarea>
-    
-    <label for="teacherResume" style="font-size:0.9em; display:block; margin-bottom:5px;">Upload Resume (.pdf, .doc, .docx):</label>
-    <input type="file" id="teacherResume" accept=".pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="width: calc(100% - 22px); margin-bottom:10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; background-color: #fff; color: #333;">
-    
-    <label for="teacherPhoto" style="font-size:0.9em; display:block; margin-bottom:5px;">Upload Photo (image/*):</label>
-    <input type="file" id="teacherPhoto" accept="image/*" style="width: calc(100% - 22px); margin-bottom:15px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; background-color: #fff; color: #333;">
-    
-    <button onclick="handleTeacherInfoSubmit()" style="width: 100%; padding: 10px; background-color: #00f2ff; color: #000; font-weight: bold; cursor: pointer; border: none; border-radius: 5px; margin-bottom: 10px;">Submit Teacher Details</button>
-    <button onclick="handleSkipTeacherInfo()" style="width: 100%; padding: 10px; background-color: #555; color: #fff; font-weight: bold; cursor: pointer; border: none; border-radius: 5px;">Skip for Now</button>
-    <div class="error" id="teacherInfoError" style="margin-top:10px; text-align: center; font-size: 0.9em;"></div>
-  </div>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const passwordInput = document.getElementById('password');
-      const togglePassword = document.getElementById('togglePassword');
-      const emailInput = document.getElementById('email');
-      const rememberPasswordCheckbox = document.getElementById('rememberPassword');
-
-      // Password Visibility Toggle
-      if (togglePassword && passwordInput) {
-        togglePassword.addEventListener('click', function () {
-          const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-          passwordInput.setAttribute('type', type);
-          this.textContent = type === 'password' ? 'Show' : 'Hide';
-        });
+    <script>
+      // Call this to show the login form when needed
+      function showLogin() {
+        document.querySelector('.container').style.display = 'block';
       }
 
-      // Remember Password Functionality - check on load
-      const rememberedEmail = localStorage.getItem('rememberedEmail_teachersLive');
-      const rememberedPassword = localStorage.getItem('rememberedPassword_teachersLive');
+      document.addEventListener('DOMContentLoaded', function() {
+        const passwordInput = document.getElementById('password');
+        const togglePassword = document.getElementById('togglePassword');
+        const emailInput = document.getElementById('email');
+        const rememberPasswordCheckbox = document.getElementById('rememberPassword');
 
-      if (rememberedEmail && emailInput) {
-        emailInput.value = rememberedEmail;
-      }
-      if (rememberedPassword && passwordInput) {
-        passwordInput.value = rememberedPassword;
-      }
-      // Only check the box if both email and password were remembered and the checkbox element exists
-      if (rememberedEmail && rememberedPassword && rememberPasswordCheckbox) {
-         rememberPasswordCheckbox.checked = true;
-      }
-    });
+        // Always clear username and password fields on load
+        if (emailInput) emailInput.value = '';
+        if (passwordInput) passwordInput.value = '';
+        if (rememberPasswordCheckbox) rememberPasswordCheckbox.checked = false;
 
-    const supabase = window.supabase.createClient(
-      'https://yssaagutrdkkjynvpjyz.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlzc2FhZ3V0cmRra2p5bnZwanl6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkxMTcyNzEsImV4cCI6MjA2NDY5MzI3MX0.Ai0MBlSmKQPYTbGzBzqWGk--ZtMQNvNaGXHICnnUt2Q'
-    );
-
-    let isSignup = false;
-    let signedInUser = null; // To store user data after sign-in
-
-    function toggleForm() {
-      isSignup = !isSignup;
-      document.getElementById('formTitle').textContent = isSignup ? 'Sign Up' : 'Sign In';
-      document.getElementById('name').style.display = isSignup ? 'block' : 'none';
-      document.getElementById('role').style.display = isSignup ? 'block' : 'none';
-      document.getElementById('confirm').style.display = isSignup ? 'block' : 'none';
-      document.querySelector('button').textContent = isSignup ? 'Sign Up' : 'Sign In';
-      document.querySelector('.toggle').textContent = isSignup ? 'Already have an account? Sign In' : "Don't have an account? Sign Up";
-      document.getElementById('errorMessage').textContent = '';
-    }
-
-    function validateEmail(email) {
-      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    }
-
-    async function handleAuth() {
-      const name = document.getElementById('name').value.trim();
-      const role = document.getElementById('role').value;
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-      const confirm = document.getElementById('confirm').value;
-      const errorBox = document.getElementById('errorMessage');
-      errorBox.textContent = '';
-
-      if (!email || !validateEmail(email)) {
-        errorBox.textContent = "Please enter a valid email.";
-        return;
-      }
-      if (!password || password.length < 6) {
-        errorBox.textContent = "Password must be at least 6 characters.";
-        return;
-      }
-
-      if (isSignup) {
-        if (!name) {
-          errorBox.textContent = "Name is required for sign up.";
-          return;
+        // Password Visibility Toggle
+        if (togglePassword && passwordInput) {
+          togglePassword.addEventListener('click', function () {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.textContent = type === 'password' ? 'Show' : 'Hide';
+          });
         }
-        if (!role) {
-          errorBox.textContent = "Please select a role.";
-          return;
-        }
-        if (password !== confirm) {
-          errorBox.textContent = "Passwords do not match.";
-          return;
-        }
+        showLogin();
+      });
 
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { data: { name, role } }
-        });
-        if (error) {
-          errorBox.textContent = error.message;
-        } else {
-          alert("Check your email to confirm sign up.");
-        }
-      } else {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
-          errorBox.textContent = error.message;
-        } else {
-          const rememberPasswordCheckbox = document.getElementById('rememberPassword');
-          if (rememberPasswordCheckbox.checked) {
-            localStorage.setItem('rememberedEmail_teachersLive', email);
-            localStorage.setItem('rememberedPassword_teachersLive', password); 
-          } else {
-            localStorage.removeItem('rememberedEmail_teachersLive');
-            localStorage.removeItem('rememberedPassword_teachersLive');
+      const supabase = window.supabase.createClient(
+        'https://yssaagutrdkkjynvpjyz.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlzc2FhZ3V0cmRra2p5bnZwanl6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkxMTcyNzEsImV4cCI6MjA2NDY5MzI3MX0.Ai0MBlSmKQPYTbGzBzqWGk--ZtMQNvNaGXHICnnUt2Q'
+      );
+
+      let isSignup = false;
+      let signedInUser = null; // To store user data after sign-in
+
+      function toggleForm() {
+        isSignup = !isSignup;
+        document.getElementById('formTitle').textContent = isSignup ? 'Sign Up' : 'Sign In';
+        document.getElementById('name').style.display = isSignup ? 'block' : 'none';
+        document.getElementById('role').style.display = isSignup ? 'block' : 'none';
+        document.getElementById('confirm').style.display = isSignup ? 'block' : 'none';
+        document.querySelector('button').textContent = isSignup ? 'Sign Up' : 'Sign In';
+        document.querySelector('.toggle').textContent = isSignup ? 'Already have an account? Sign In' : "Don't have an account? Sign Up";
+        document.getElementById('errorMessage').textContent = '';
+      }
+
+      function validateEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      }
+
+      async function handleAuth() {
+        try {
+          const name = document.getElementById('name').value.trim();
+          const role = document.getElementById('role').value;
+          const email = document.getElementById('email').value.trim();
+          const password = document.getElementById('password').value;
+          const confirm = document.getElementById('confirm').value;
+          const errorBox = document.getElementById('errorMessage');
+          errorBox.textContent = '';
+
+          if (!email || !validateEmail(email)) {
+            errorBox.textContent = "Please enter a valid email.";
+            return;
+          }
+          if (!password || password.length < 6) {
+            errorBox.textContent = "Password must be at least 6 characters.";
+            return;
           }
 
-          signedInUser = data.user; // Store user object
-          document.querySelector('.container').style.display = 'none'; // Hide login form
-          const roleModal = document.getElementById('roleSelectionModal');
-          const studentCheckbox = document.getElementById('roleStudentCheckbox');
-          const teacherCheckbox = document.getElementById('roleTeacherCheckbox');
-          const roleInfoMessage = document.getElementById('roleInfoMessage');
+          if (isSignup) {
+            if (!name) {
+              errorBox.textContent = "Name is required for sign up.";
+              return;
+            }
+            if (!role) {
+              errorBox.textContent = "Please select a role.";
+              return;
+            }
+            if (password !== confirm) {
+              errorBox.textContent = "Passwords do not match.";
+              return;
+            }
 
-          // Reset checkboxes and message for fresh display
-          studentCheckbox.checked = false;
-          teacherCheckbox.checked = false;
-          studentCheckbox.disabled = false;
-          teacherCheckbox.disabled = false;
-          roleInfoMessage.textContent = ''; // Clear previous message
-
-          const userMetadata = signedInUser.user_metadata || {};
-          const existingRole = userMetadata.role;
-          const trialStatusExists = userMetadata.trialStatus;
-
-          if (existingRole && trialStatusExists) {
-              // Scenario A: User has completed initial setup, go directly to trial modal
-              document.getElementById('trialInfoModal').style.display = 'block';
-          } else if (existingRole && !trialStatusExists) {
-              // Scenario B: Role exists, but info form/trial setup incomplete.
-              // Directly show the relevant info form.
-              if (existingRole === 'student') {
-                  const studentInfoModal = document.getElementById('studentInfoModal');
-                  studentInfoModal.style.display = 'block';
-                  if (signedInUser && signedInUser.email) {
-                      document.getElementById('studentEmail').value = signedInUser.email;
-                  }
-              } else if (existingRole === 'teacher') {
-                  const teacherInfoModal = document.getElementById('teacherInfoModal');
-                  teacherInfoModal.style.display = 'block';
-                  if (signedInUser && signedInUser.email) {
-                      document.getElementById('teacherEmail').value = signedInUser.email;
-                  }
-              }
+            const { error } = await supabase.auth.signUp({
+              email,
+              password,
+              options: { data: { name, role } }
+            });
+            if (error) {
+              errorBox.textContent = error.message;
+              console.error('Sign up error:', error);
+            } else {
+              alert("Check your email to confirm sign up.");
+            }
           } else {
-              // Scenario C: No role selected yet (fresh user or incomplete very early step).
-              // Show role selection modal for initial choice.
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) {
+              errorBox.textContent = error.message;
+              console.error('Sign in error:', error);
+            } else {
+              const rememberPasswordCheckbox = document.getElementById('rememberPassword');
+              if (rememberPasswordCheckbox.checked) {
+                localStorage.setItem('rememberedEmail_teachersLive', email);
+                localStorage.setItem('rememberedPassword_teachersLive', password); 
+              } else {
+                localStorage.removeItem('rememberedEmail_teachersLive');
+                localStorage.removeItem('rememberedPassword_teachersLive');
+              }
+
+              signedInUser = data.user; // Store user object
+              document.querySelector('.container').style.display = 'none'; // Hide login form
               const roleModal = document.getElementById('roleSelectionModal');
-              const studentCheckbox = document.getElementById('roleStudentCheckbox'); // Ensure these are defined if used here
-              const teacherCheckbox = document.getElementById('roleTeacherCheckbox'); // Ensure these are defined if used here
+              const studentCheckbox = document.getElementById('roleStudentCheckbox');
+              const teacherCheckbox = document.getElementById('roleTeacherCheckbox');
               const roleInfoMessage = document.getElementById('roleInfoMessage');
 
               // Reset checkboxes and message for fresh display
-              if (studentCheckbox) studentCheckbox.checked = false;
-              if (teacherCheckbox) teacherCheckbox.checked = false;
-              if (studentCheckbox) studentCheckbox.disabled = false;
-              if (teacherCheckbox) teacherCheckbox.disabled = false;
-              if (roleInfoMessage) roleInfoMessage.textContent = ''; 
+              studentCheckbox.checked = false;
+              teacherCheckbox.checked = false;
+              studentCheckbox.disabled = false;
+              teacherCheckbox.disabled = false;
+              roleInfoMessage.textContent = ''; // Clear previous message
 
-              if (roleModal) roleModal.style.display = 'block';
+              const userMetadata = signedInUser.user_metadata || {};
+              const existingRole = userMetadata.role;
+              const trialStatusExists = userMetadata.trialStatus;
+
+              if (existingRole && trialStatusExists) {
+                  // Scenario A: User has completed initial setup, go directly to trial modal
+                  document.getElementById('trialInfoModal').style.display = 'block';
+              } else if (existingRole && !trialStatusExists) {
+                  // Scenario B: Role exists, but info form/trial setup incomplete.
+                  // Directly show the relevant info form.
+                  if (existingRole === 'student') {
+                      const studentInfoModal = document.getElementById('studentInfoModal');
+                      studentInfoModal.style.display = 'block';
+                      if (signedInUser && signedInUser.email) {
+                          document.getElementById('studentEmail').value = signedInUser.email;
+                      }
+                  } else if (existingRole === 'teacher') {
+                      const teacherInfoModal = document.getElementById('teacherInfoModal');
+                      teacherInfoModal.style.display = 'block';
+                      if (signedInUser && signedInUser.email) {
+                          document.getElementById('teacherEmail').value = signedInUser.email;
+                      }
+                  }
+              } else {
+                  // Scenario C: No role selected yet (fresh user or incomplete very early step).
+                  // Show role selection modal for initial choice.
+                  const roleModal = document.getElementById('roleSelectionModal');
+                  const studentCheckbox = document.getElementById('roleStudentCheckbox'); // Ensure these are defined if used here
+                  const teacherCheckbox = document.getElementById('roleTeacherCheckbox'); // Ensure these are defined if used here
+                  const roleInfoMessage = document.getElementById('roleInfoMessage');
+
+                  // Reset checkboxes and message for fresh display
+                  if (studentCheckbox) studentCheckbox.checked = false;
+                  if (teacherCheckbox) teacherCheckbox.checked = false;
+                  if (studentCheckbox) studentCheckbox.disabled = false;
+                  if (teacherCheckbox) teacherCheckbox.disabled = false;
+                  if (roleInfoMessage) roleInfoMessage.textContent = ''; 
+
+                  if (roleModal) roleModal.style.display = 'block';
+              }
+            }
           }
-        }
-      }
-    }
-
-    async function handleRoleChoice(selectedRole) {
-      const studentCheckbox = document.getElementById('roleStudentCheckbox');
-      const teacherCheckbox = document.getElementById('roleTeacherCheckbox');
-      const roleSelectError = document.getElementById('roleSelectError');
-      roleSelectError.textContent = '';
-
-      if (!signedInUser) {
-        roleSelectError.textContent = 'User session not found. Please sign in again.';
-        // Optionally, redirect to login or show login form
-        return;
-      }
-
-      if (selectedRole === 'student') {
-        if (studentCheckbox.checked) {
-          teacherCheckbox.checked = false; // Ensure only one is selected
-          document.getElementById('roleSelectionModal').style.display = 'none';
-          const studentModal = document.getElementById('studentInfoModal');
-          studentModal.style.display = 'block';
-          if (signedInUser.email) {
-            document.getElementById('studentEmail').value = signedInUser.email;
-          }
-        } else {
-          // If student unchecks, do nothing or hide student form if it was somehow visible
-           document.getElementById('studentInfoModal').style.display = 'none'; 
-        }
-      } else if (selectedRole === 'teacher') {
-        if (teacherCheckbox.checked) {
-          studentCheckbox.checked = false; // Ensure only one is selected
-          // Instead of direct update, show teacher info form
-          document.getElementById('roleSelectionModal').style.display = 'none';
-          const teacherModal = document.getElementById('teacherInfoModal');
-          teacherModal.style.display = 'block';
-          if (signedInUser && signedInUser.email) {
-            document.getElementById('teacherEmail').value = signedInUser.email;
-          }
-        } 
-      }
-    }
-
-    async function handleStudentInfoSubmit() {
-      const studentInfoError = document.getElementById('studentInfoError');
-      studentInfoError.textContent = '';
-
-      const firstName = document.getElementById('firstName').value.trim();
-      const lastName = document.getElementById('lastName').value.trim();
-      const phoneNumber = document.getElementById('phoneNumber').value.trim();
-      const whatsappNumber = document.getElementById('whatsappNumber').value.trim();
-      const studentEmail = document.getElementById('studentEmail').value.trim(); // Already pre-filled
-      const currentStudies = document.getElementById('currentStudies').value.trim();
-      const interests = document.getElementById('interests').value.trim();
-      const photoFile = document.getElementById('studentPhoto').files[0];
-
-      if (!firstName || !lastName) {
-        studentInfoError.textContent = 'First Name and Last Name are required.';
-        return;
-      }
-
-      if (!signedInUser) {
-        studentInfoError.textContent = 'User session not found. Please try signing in again.';
-        // Optionally hide this modal and show login
-        return;
-      }
-
-      const studentData = {
-        role: 'student',
-        firstName,
-        lastName,
-        phoneNumber,
-        whatsappNumber,
-        // email is part of auth user, but can be in metadata if needed for queries
-        // studentEmail: studentEmail, 
-        currentStudies,
-        interests
-      };
-
-      let photoUrl = null;
-      if (photoFile && signedInUser) {
-        studentInfoError.textContent = 'Uploading photo...';
-        const filePath = `profile-photos/${signedInUser.id}/${Date.now()}_${photoFile.name}`;
-        try {
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('profile-photos') // BUCKET NAME - MAKE SURE THIS EXISTS
-            .upload(filePath, photoFile, {
-              cacheControl: '3600',
-              upsert: false
-            });
-
-          if (uploadError) throw uploadError;
-
-          // Get public URL
-          const { data: publicURLData } = supabase.storage
-            .from('profile-photos') // BUCKET NAME
-            .getPublicUrl(filePath);
-          photoUrl = publicURLData.publicUrl;
-          studentData.photoUrl = photoUrl;
-          studentInfoError.textContent = 'Photo uploaded!'; 
-        } catch (error) {
-          studentInfoError.textContent = 'Photo upload failed: ' + error.message;
-          // Decide if you want to proceed without photo or stop
-          // For now, we'll let it proceed and save other data
+        } catch (err) {
+          errorBox.textContent = 'Unexpected error: ' + (err.message || err);
+          console.error('Unexpected error in handleAuth:', err);
         }
       }
 
-      const trialDetails = {
-        trialStartDate: new Date().toISOString(),
-        trialStatus: 'active'
-      };
+      async function handleRoleChoice(selectedRole) {
+        const studentCheckbox = document.getElementById('roleStudentCheckbox');
+const teacherCheckbox = document.getElementById('roleTeacherCheckbox');
+        const roleSelectError = document.getElementById('roleSelectError');
+        roleSelectError.textContent = '';
 
-      const currentMetadata = signedInUser.user_metadata || {};
-      const finalStudentMetadata = { ...currentMetadata, ...studentData, ...trialDetails };
-
-      try {
-        const { error: updateError } = await supabase.auth.updateUser({
-          data: finalStudentMetadata
-        });
-        if (updateError) throw updateError;
-
-        // Hide student info modal and show trial modal
-        document.getElementById('studentInfoModal').style.display = 'none';
-        document.getElementById('trialInfoModal').style.display = 'block';
-        studentInfoError.textContent = ''; // Clear any previous messages
-      } catch (error) {
-        studentInfoError.textContent = 'Error saving details: ' + error.message;
-      }
-    }
-
-    async function handleTeacherInfoSubmit() {
-      const teacherInfoError = document.getElementById('teacherInfoError');
-      teacherInfoError.textContent = '';
-
-      if (!signedInUser) {
-        teacherInfoError.textContent = 'User session not found. Please sign in again.';
-        return;
-      }
-
-      const firstName = document.getElementById('teacherFirstName').value.trim();
-      const lastName = document.getElementById('teacherLastName').value.trim();
-      const phoneNumber = document.getElementById('teacherPhoneNumber').value.trim();
-      const whatsappNumber = document.getElementById('teacherWhatsappNumber').value.trim(); // Optional
-      // const email = document.getElementById('teacherEmail').value.trim(); // Pre-filled
-      const subjects = document.getElementById('teacherSubjects').value.trim();
-      const resumeFile = document.getElementById('teacherResume').files[0];
-      const photoFile = document.getElementById('teacherPhoto').files[0];
-
-      if (!firstName || !lastName || !phoneNumber || !subjects) {
-        teacherInfoError.textContent = 'First Name, Last Name, Phone Number, and Subjects are required.';
-        return;
-      }
-      // Basic phone validation (you might want a more robust one)
-      if (phoneNumber && !/^(\+?[\d\s()-]+)$/.test(phoneNumber)) {
-          teacherInfoError.textContent = 'Please enter a valid phone number.';
+        if (!signedInUser) {
+          roleSelectError.textContent = 'User session not found. Please sign in again.';
+          // Optionally, redirect to login or show login form
           return;
+        }
+
+        if (selectedRole === 'student') {
+          if (studentCheckbox.checked) {
+            teacherCheckbox.checked = false; // Ensure only one is selected
+            document.getElementById('roleSelectionModal').style.display = 'none';
+            const studentModal = document.getElementById('studentInfoModal');
+            studentModal.style.display = 'block';
+            if (signedInUser.email) {
+              document.getElementById('studentEmail').value = signedInUser.email;
+            }
+          } else {
+            // If student unchecks, do nothing or hide student form if it was somehow visible
+             document.getElementById('studentInfoModal').style.display = 'none'; 
+          }
+        } else if (selectedRole === 'teacher') {
+          if (teacherCheckbox.checked) {
+            studentCheckbox.checked = false; // Ensure only one is selected
+            // Instead of direct update, show teacher info form
+            document.getElementById('roleSelectionModal').style.display = 'none';
+            const teacherModal = document.getElementById('teacherInfoModal');
+            teacherModal.style.display = 'block';
+            if (signedInUser && signedInUser.email) {
+              document.getElementById('teacherEmail').value = signedInUser.email;
+            }
+          } 
+        }
       }
-      if (whatsappNumber && !/^(\+?[\d\s()-]+)$/.test(whatsappNumber)) {
-          teacherInfoError.textContent = 'Please enter a valid WhatsApp number.';
+
+      async function handleStudentInfoSubmit() {
+        // studentInfoError already declared above; use reference only.
+        studentInfoError.textContent = '';
+
+        const firstName = document.getElementById('firstName').value.trim();
+        const lastName = document.getElementById('lastName').value.trim();
+        const phoneNumber = document.getElementById('phoneNumber').value.trim();
+        const whatsappNumber = document.getElementById('whatsappNumber').value.trim();
+        const studentEmail = document.getElementById('studentEmail').value.trim(); // Already pre-filled
+        const currentStudies = document.getElementById('currentStudies').value.trim();
+        const interests = document.getElementById('interests').value.trim();
+        const photoFile = document.getElementById('studentPhoto').files[0];
+
+        if (!firstName || !lastName) {
+          studentInfoError.textContent = 'First Name and Last Name are required.';
           return;
-      }
+        }
 
-      teacherInfoError.textContent = 'Processing...';
+        if (!signedInUser) {
+          studentInfoError.textContent = 'User session not found. Please try signing in again.';
+          // Optionally hide this modal and show login
+          return;
+        }
 
-      const teacherData = {
-        role: 'teacher',
-        firstName,
-        lastName,
-        phoneNumber,
-        whatsappNumber,
-        subjects
-      };
+        const studentData = {
+          role: 'student',
+          firstName,
+          lastName,
+          phoneNumber,
+          whatsappNumber,
+          // email is part of auth user, but can be in metadata if needed for queries
+          // studentEmail: studentEmail, 
+          currentStudies,
+          interests
+        };
 
-      // Handle Resume Upload
-      if (resumeFile) {
-        const resumeFilePath = `teacher-resumes/${signedInUser.id}/${Date.now()}_${resumeFile.name}`;
+        let photoUrl = null;
+        if (photoFile && signedInUser) {
+          studentInfoError.textContent = 'Uploading photo...';
+          const filePath = `profile-photos/${signedInUser.id}/${Date.now()}_${photoFile.name}`;
+          try {
+            const { data: uploadData, error: uploadError } = await supabase.storage
+              .from('profile-photos') // BUCKET NAME - MAKE SURE THIS EXISTS
+              .upload(filePath, photoFile, {
+                cacheControl: '3600',
+                upsert: false
+              });
+
+            if (uploadError) throw uploadError;
+
+            // Get public URL
+            const { data: publicURLData } = supabase.storage
+              .from('profile-photos') // BUCKET NAME
+              .getPublicUrl(filePath);
+            photoUrl = publicURLData.publicUrl;
+            studentData.photoUrl = photoUrl;
+            studentInfoError.textContent = 'Photo uploaded!'; 
+          } catch (error) {
+            studentInfoError.textContent = 'Photo upload failed: ' + error.message;
+            // Decide if you want to proceed without photo or stop
+            // For now, we'll let it proceed and save other data
+          }
+        }
+
+        const trialDetails = {
+          trialStartDate: new Date().toISOString(),
+          trialStatus: 'active'
+        };
+
+        const currentMetadata = signedInUser.user_metadata || {};
+        const finalStudentMetadata = { ...currentMetadata, ...studentData, ...trialDetails };
+
         try {
-          teacherInfoError.textContent = 'Uploading resume...';
-          const { data: resumeUploadData, error: resumeUploadError } = await supabase.storage
-            .from('teacher-resumes') // CREATE THIS BUCKET IN SUPABASE
-            .upload(resumeFilePath, resumeFile, { cacheControl: '3600', upsert: false });
-          if (resumeUploadError) throw resumeUploadError;
-          const { data: resumePublicURLData } = supabase.storage.from('teacher-resumes').getPublicUrl(resumeFilePath);
-          teacherData.resumeUrl = resumePublicURLData.publicUrl;
+          const { error: updateError } = await supabase.auth.updateUser({
+            data: finalStudentMetadata
+          });
+          if (updateError) throw updateError;
+
+          // Hide student info modal and show trial modal
+          document.getElementById('studentInfoModal').style.display = 'none';
+          document.getElementById('trialInfoModal').style.display = 'block';
+          studentInfoError.textContent = ''; // Clear any previous messages
         } catch (error) {
-          teacherInfoError.textContent = 'Resume upload failed: ' + error.message;
-          // Decide if to proceed. For now, we'll stop if critical uploads fail.
-          return; 
+          studentInfoError.textContent = 'Error saving details: ' + error.message;
         }
       }
 
-      // Handle Photo Upload
-      if (photoFile) {
-        const photoFilePath = `teacher-photos/${signedInUser.id}/${Date.now()}_${photoFile.name}`;
-        try {
-          teacherInfoError.textContent = 'Uploading photo...';
-          const { data: photoUploadData, error: photoUploadError } = await supabase.storage
-            .from('teacher-photos') // BUCKET: 'teacher-photos' or 'profile-photos'
-            .upload(photoFilePath, photoFile, { cacheControl: '3600', upsert: false });
-          if (photoUploadError) throw photoUploadError;
-          const { data: photoPublicURLData } = supabase.storage.from('teacher-photos').getPublicUrl(photoFilePath);
-          teacherData.photoUrl = photoPublicURLData.publicUrl;
-        } catch (error) {
-          teacherInfoError.textContent = 'Photo upload failed: ' + error.message;
-          // Decide if to proceed. For now, we'll stop if critical uploads fail.
-          return; 
-        }
-      }
-
-      const trialDetails = {
-        trialStartDate: new Date().toISOString(),
-        trialStatus: 'active'
-      };
-
-      const currentMetadata = signedInUser.user_metadata || {};
-      const finalTeacherMetadata = { ...currentMetadata, ...teacherData, ...trialDetails };
-
-      try {
-        teacherInfoError.textContent = 'Saving details...';
-        const { error: updateError } = await supabase.auth.updateUser({
-          data: finalTeacherMetadata
-        });
-        if (updateError) throw updateError;
-
-        document.getElementById('teacherInfoModal').style.display = 'none';
-        document.getElementById('trialInfoModal').style.display = 'block';
+      async function handleTeacherInfoSubmit() {
+        const teacherInfoError = document.getElementById('teacherInfoError');
         teacherInfoError.textContent = '';
-      } catch (error) {
-        teacherInfoError.textContent = 'Error saving teacher details: ' + error.message;
-      }
+
+        if (!signedInUser) {
+          teacherInfoError.textContent = 'User session not found. Please sign in again.';
+          return;
+        }
+
+        const firstName = document.getElementById('teacherFirstName').value.trim();
+        const lastName = document.getElementById('teacherLastName').value.trim();
+        const phoneNumber = document.getElementById('teacherPhoneNumber').value.trim();
+        const whatsappNumber = document.getElementById('teacherWhatsappNumber').value.trim(); // Optional
+        // const email = document.getElementById('teacherEmail').value.trim(); // Pre-filled
+        const subjects = document.getElementById('teacherSubjects').value.trim();
+        const resumeFile = document.getElementById('teacherResume').files[0];
+        const photoFile = document.getElementById('teacherPhoto').files[0];
+
+        if (!firstName || !lastName || !phoneNumber || !subjects) {
+          teacherInfoError.textContent = 'First Name, Last Name, Phone Number, and Subjects are required.';
+          return;
+        }
+        // Basic phone validation (you might want a more robust one)
+        if (phoneNumber && !/^(\+?[\d\s()-]+)$/.test(phoneNumber)) {
+            teacherInfoError.textContent = 'Please enter a valid phone number.';
+            return;
+        }
+        if (whatsappNumber && !/^(\+?[\d\s()-]+)$/.test(whatsappNumber)) {
+            teacherInfoError.textContent = 'Please enter a valid WhatsApp number.';
+            return;
+        }
+
+        teacherInfoError.textContent = 'Processing...';
+
+        const teacherData = {
+          role: 'teacher',
+          firstName,
+          lastName,
+          phoneNumber,
+          whatsappNumber,
+          subjects
+        };
+
+        // Handle Resume Upload
+        if (resumeFile) {
+          const resumeFilePath = `teacher-resumes/${signedInUser.id}/${Date.now()}_${resumeFile.name}`;
+          try {
+            teacherInfoError.textContent = 'Uploading resume...';
+            const { data: resumeUploadData, error: resumeUploadError } = await supabase.storage
+              .from('teacher-resumes') // CREATE THIS BUCKET IN SUPABASE
+              .upload(resumeFilePath, resumeFile, { cacheControl: '3600', upsert: false });
+            if (resumeUploadError) throw resumeUploadError;
+            const { data: resumePublicURLData } = supabase.storage.from('teacher-resumes').getPublicUrl(resumeFilePath);
+            teacherData.resumeUrl = resumePublicURLData.publicUrl;
+          } catch (error) {
+            teacherInfoError.textContent = 'Resume upload failed: ' + error.message;
+            // Decide if to proceed. For now, we'll stop if critical uploads fail.
+            return; 
+          }
+        }
+
+        // Handle Photo Upload
+        if (photoFile) {
+          const photoFilePath = `teacher-photos/${signedInUser.id}/${Date.now()}_${photoFile.name}`;
+          try {
+            teacherInfoError.textContent = 'Uploading photo...';
+            const { data: photoUploadData, error: photoUploadError } = await supabase.storage
+              .from('teacher-photos') // BUCKET: 'teacher-photos' or 'profile-photos'
+              .upload(photoFilePath, photoFile, { cacheControl: '3600', upsert: false });
+            if (photoUploadError) throw photoUploadError;
+            const { data: photoPublicURLData } = supabase.storage.from('teacher-photos').getPublicUrl(photoFilePath);
+            teacherData.photoUrl = photoPublicURLData.publicUrl;
+          } catch (error) {
+            teacherInfoError.textContent = 'Photo upload failed: ' + error.message;
+            // Decide if to proceed. For now, we'll stop if critical uploads fail.
+            return; 
+          }
+        }
+
+const trialDetails = {
+trialStartDate: new Date().toISOString(),
+trialStatus: 'active'
+};
+      
+const currentMetadata = signedInUser.user_metadata || {};
+const finalTeacherMetadata = { ...currentMetadata, ...teacherData, ...trialDetails };
+
+try {
+teacherInfoError.textContent = 'Saving details...';
+const { error: updateError } = await supabase.auth.updateUser({
+data: finalTeacherMetadata
+});
+} catch (error) {
+teacherInfoError.textContent = 'Error saving teacher details: ' + error.message;
+}
     }
 
     async function handleSkipTeacherInfo() {
-      const teacherInfoError = document.getElementById('teacherInfoError');
+      // teacherInfoError already declared above; use reference only.
       teacherInfoError.textContent = ''; // Clear previous errors
 
       if (!signedInUser) {
@@ -593,7 +596,7 @@
     }
 
     async function handleSkipStudentInfo() {
-      const studentInfoError = document.getElementById('studentInfoError');
+      // studentInfoError already declared above; use reference only.
       studentInfoError.textContent = ''; // Clear previous errors
 
       if (!signedInUser) {
@@ -644,5 +647,9 @@
     }
 
   </script>
+    <div style="text-align:center; margin-top:40px; margin-bottom:30px; font-size:1.2em; color:#00f2ff; font-style:italic; font-weight:bold;">
+      Dedicated to Nature, My Dad - M.C.Ponnusamy - Who was an excellent teacher
+    </div>
+  </div>
 </body>
 </html>
