@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Teacher Live Feed</title>
+  <title>Teacher Broadcast to Multiple Students</title>
   <style>
+    /* ...your existing styles... */
     body {
       background: #1e1e2f;
       color: white;
@@ -51,328 +52,38 @@
         margin-bottom: 20px;
         text-align: center;
     }
-  </style>
-</head>
-<body>
-  <h1>Teacher Live Feed</h1>
-<div id="studentListContainer" style="width:80%;max-width:640px;margin:20px auto 0 auto;padding:16px;background:#16213e;border-radius:8px;box-shadow:0 2px 8px #0002;display:none;">
-  <h2 style="color:#00f2ff;font-size:1.2em;margin-bottom:10px;">Logged-in Students</h2>
-  <div id="studentList" style="color:#fff;font-size:1em;"></div>
-</div>
-  <p class="info-text">Your video feed should appear below. Please allow camera access if prompted by your browser.</p>
-
-  <button id="shareScreenBtn" style="width:80%;max-width:320px;margin:20px 0 10px 0;background:#00f2ff;color:#222b45;font-weight:bold;border-radius:5px;cursor:pointer;display:block;">Share Screen</button>
-  <video id="screenPreview" style="display:none;width:80%;max-width:640px;margin-bottom:10px;border:2px solid #00f2ff;border-radius:8px;" autoplay playsinline></video>
-  <button id="viewScreenBtn" style="width:80%;max-width:320px;margin:10px 0;background:#00ff7f;color:#222b45;font-weight:bold;border-radius:5px;cursor:pointer;display:block;">View Shared Screen</button>
-  <video id="remoteScreen" style="display:none;width:80%;max-width:640px;margin-bottom:10px;border:2px solid #00ff7f;border-radius:8px;" autoplay playsinline></video>
-  <button id="startCameraBtn" style="width:80%;max-width:320px;margin:10px 0;background:#007fff;color:#fff;font-weight:bold;border-radius:5px;cursor:pointer;display:block;">Start Camera</button>
-  <div id="videoContainer">
-    <video id="teacherVideo" autoplay playsinline muted></video>
-  </div>
-  <div id="status" class="status-message">Camera is off by default. Click 'Start Camera' to begin.</div>
-
-  <script>
-    const videoElement = document.getElementById('teacherVideo');
-    const statusElement = document.getElementById('status');
-    const videoContainer = document.getElementById('videoContainer');
-    // --- WebRTC Screen Sharing with Supabase Signaling ---
-    const shareScreenBtn = document.getElementById('shareScreenBtn');
-    const screenPreview = document.getElementById('screenPreview');
-    const viewScreenBtn = document.getElementById('viewScreenBtn');
-    const remoteScreen = document.getElementById('remoteScreen');
-
-    // --- Supabase Setup (reuse existing client) ---
-    // const supabase = window.supabase.createClient(...); // already defined above
-    const SIGNAL_CHANNEL = 'screen_share_signal';
-    let peerConnection = null;
-    let screenStream = null;
-    let isSharing = false;
-    let isViewing = false;
-
-    // --- Utility: Send signaling message ---
-    async function sendSignal(type, data) {
-      await supabase.from('signals').insert([{ type, data: JSON.stringify(data) }]);
+    #localVideo, #remoteVideo {
+      width: 320px;
+      border: 2px solid #00f2ff;
     }
-
-    // --- Listen for incoming signals ---
-    async function subscribeToSignals() {
-      supabase.channel('public:signals')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'signals' }, payload => {
-          const msg = payload.new;
-          if (!msg || !msg.type) return;
-          const data = JSON.parse(msg.data);
-          if (msg.type === 'offer' && !isSharing && isViewing) {
-            handleOffer(data);
-          } else if (msg.type === 'answer' && isSharing) {
-            handleAnswer(data);
-          } else if (msg.type === 'ice-candidate') {
-            handleRemoteIceCandidate(data);
-          }
-        })
-        .subscribe();
+    #roleSelect, #startBtn, #broadcastBtn, #joinBtn {
+      margin: 10px 0;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1em;
     }
-    subscribeToSignals();
-
-    // --- Share Screen Logic ---
-    if (shareScreenBtn) {
-      shareScreenBtn.onclick = async () => {
-        if (isSharing) return;
-        try {
-          screenStream = await navigator.mediaDevices.getDisplayMedia({video:true, audio:false});
-          screenPreview.srcObject = screenStream;
-          screenPreview.style.display = 'block';
-          isSharing = true;
-          shareScreenBtn.textContent = 'Sharing...';
-          startSharing();
-        } catch (err) {
-          console.error('Error accessing media devices:', err);
-        }
-      }
+    #roleSelect {
+      background: #222b45;
+      color: #fff;
+      border: 1px solid #00f2ff;
     }
-
-    // --- View Shared Screen Logic ---
-    if (viewScreenBtn) {
-      viewScreenBtn.onclick = async () => {
-        if (isViewing) return;
-        isViewing = true;
-        remoteScreen.style.display = 'block';
-        startViewing();
-      }
+    #startBtn {
+      background: #007fff;
+      color: #fff;
     }
-
-    // --- WebRTC Peer Connection Setup ---
-    function createPeerConnection(isInitiator) {
-      const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
-      pc.onicecandidate = event => {
-        if (event.candidate) sendSignal('ice-candidate', event.candidate);
-      }
-      if (!isInitiator) {
-        pc.ontrack = event => {
-          remoteScreen.srcObject = event.streams[0];
-        }
-      }
-      return pc;
+    #broadcastBtn {
+      background: #00f2ff;
+      color: #222b45;
+      display: none;
     }
-
-    // --- Start Sharing (as sender) ---
-    async function startSharing() {
-      peerConnection = createPeerConnection(true);
-      screenStream.getTracks().forEach(track => peerConnection.addTrack(track, screenStream));
-      const offer = await peerConnection.createOffer();
-      await peerConnection.setLocalDescription(offer);
-      sendSignal('offer', offer);
+    #joinBtn {
+      background: #00ff7f;
+      color: #222b45;
+      display: none;
     }
-
-    // --- Handle Offer (as viewer) ---
-    async function handleOffer(offer) {
-      peerConnection = createPeerConnection(false);
-      await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-      const answer = await peerConnection.createAnswer();
-      await peerConnection.setLocalDescription(answer);
-      sendSignal('answer', answer);
-    }
-
-    // --- Handle Answer (as sharer) ---
-    async function handleAnswer(answer) {
-      await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-    }
-
-    // --- ICE Candidate Handling ---
-    function handleRemoteIceCandidate(candidate) {
-      if (peerConnection) {
-        peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-      }
-    }
-
-    // Clean up on stop (not implemented in this scaffold)
-
-    async function startCamera() {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        statusElement.textContent = 'getUserMedia is not supported by your browser.';
-        videoContainer.style.alignItems = 'center';
-        return;
-      }
-
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        videoElement.srcObject = stream;
-        videoElement.onloadedmetadata = () => {
-          statusElement.textContent = 'Camera active.';
-          videoContainer.style.alignItems = 'stretch';
-        };
-        
-        window.localStream = stream;
-
-      } catch (err) {
-        console.error('Error accessing media devices:', err);
-        videoContainer.style.alignItems = 'center';
-        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-          statusElement.textContent = 'Camera access denied. Please allow access in your browser settings and refresh.';
-        } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-          statusElement.textContent = 'No camera found. Please ensure a camera is connected and enabled.';
-        } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
-          statusElement.textContent = 'Camera is already in use or cannot be accessed. Try closing other apps using the camera.';
-        } else {
-          statusElement.textContent = 'Error accessing camera: ' + err.message;
-        }
-      }
-    }
-
-    document.getElementById('startCameraBtn').addEventListener('click', startCamera);
-  </script>
-  <!-- Chat Box Start -->
-  <button id="showChatBtn" style="width:80%;max-width:320px;margin:10px 0;background:#00f2ff;color:#222b45;font-weight:bold;border-radius:5px;cursor:pointer;display:block;">Show Chat</button>
-  <div id="chatBoxContainer" style="display:none;">
-    <div id="chatHeader">Student-Teacher Chat <span id="chatClose">×</span></div>
-    <div id="chatMessages"></div>
-    <div id="chatInputArea">
-      <input type="text" id="chatInput" placeholder="Type a message..." autocomplete="off" />
-      <button id="chatSend">Send</button>
-    </div>
-  </div>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <script>
-    // --- Supabase Setup ---
-    const supabaseUrl = 'https://yssaagutrdkkjynvpjyz.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlzc2FhZ3V0cmRra2p5bnZwanl6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkxMTcyNzEsImV4cCI6MjA2NDY5MzI3MX0.Ai0MBlSmKQPYTbGzBzqWGk--ZtMQNvNaGXHICnnUt2Q'; // Use env var in prod
-    const supabase = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseKey) : createClient(supabaseUrl, supabaseKey);
-
-    // --- Chat DOM Elements ---
-    const chatBox = document.getElementById('chatBoxContainer');
-    const chatHeader = document.getElementById('chatHeader');
-    const chatClose = document.getElementById('chatClose');
-    const chatMessages = document.getElementById('chatMessages');
-    const chatInput = document.getElementById('chatInput');
-    const chatSend = document.getElementById('chatSend');
-
-    // --- User Info ---
-    let currentUser = null;
-    let userName = 'Unknown';
-    let userRole = 'student'; // fallback
-    let userId = null;
-
-    // --- Fetch Auth Info ---
-    async function fetchUserInfo() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        currentUser = user;
-        userId = user.id;
-        userName = user.user_metadata && user.user_metadata.full_name ? user.user_metadata.full_name : (user.email || 'Unknown');
-        userRole = user.user_metadata && user.user_metadata.role ? user.user_metadata.role : 'student';
-      }
-    }
-
-    // --- Fetch & Render Messages ---
-    async function fetchMessages() {
-      chatMessages.innerHTML = '<div style="color:#aaa;text-align:center;">Loading chat...</div>';
-      let { data, error } = await supabase
-        .from('messages')
-        .select('*')
-        .order('created_at', { ascending: true });
-      if (error) {
-        chatMessages.innerHTML = '<div style="color:red;text-align:center;">Failed to load messages</div>';
-        return;
-      }
-      chatMessages.innerHTML = '';
-      data.forEach(msg => appendMessage(msg, msg.sender_id === userId));
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    // --- Listen for New Messages ---
-    function subscribeToMessages() {
-      supabase.channel('public:messages')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-          const msg = payload.new;
-          appendMessage(msg, msg.sender_id === userId);
-          chatMessages.scrollTop = chatMessages.scrollHeight;
-        })
-        .subscribe();
-    }
-
-    // --- Append Message to Chat ---
-    function appendMessage(msg, isOwn) {
-      const msgDiv = document.createElement('div');
-      msgDiv.className = 'chat-message' + (isOwn ? ' user' : ' bot');
-      const meta = document.createElement('div');
-      meta.style.fontSize = '0.82em';
-      meta.style.color = isOwn ? '#00f2ff' : '#0ff6';
-      meta.style.marginBottom = '2px';
-      meta.textContent = `${msg.sender_name} (${msg.sender_role})`;
-      const bubble = document.createElement('div');
-      bubble.className = 'chat-bubble';
-      bubble.textContent = msg.content;
-      msgDiv.appendChild(meta);
-      msgDiv.appendChild(bubble);
-      chatMessages.appendChild(msgDiv);
-    }
-
-    // --- Send Message ---
-    async function sendMessage() {
-      const content = chatInput.value.trim();
-      if (!content) return;
-      chatInput.value = '';
-      await supabase.from('messages').insert([
-        {
-          sender_id: userId,
-          sender_name: userName,
-          sender_role: userRole,
-          content: content
-        }
-      ]);
-      // Message will appear via realtime subscription
-    }
-
-    // --- UI Events ---
-    chatHeader.addEventListener('click', function(e) {
-      if (e.target === chatClose) return;
-      chatBox.classList.toggle('minimized');
-      if (!chatBox.classList.contains('minimized')) chatInput.focus();
-    });
-    chatClose.addEventListener('click', function() { chatBox.style.display = 'none'; });
-document.getElementById('showChatBtn').addEventListener('click', function() {
-  chatBox.style.display = 'flex';
-});
-    chatSend.addEventListener('click', sendMessage);
-    chatInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') sendMessage(); });
-
-    // --- Init Chat ---
-    // Fetch and show students if teacher
-    async function showStudentsIfTeacher() {
-      if (userRole !== 'teacher') {
-        document.getElementById('studentListContainer').style.display = 'none';
-        return;
-      }
-      const studentListContainer = document.getElementById('studentListContainer');
-      const studentList = document.getElementById('studentList');
-      studentListContainer.style.display = 'block';
-      studentList.innerHTML = '<span style="color:#aaa;">Loading students...</span>';
-      let { data, error } = await supabase.from('users').select('id,email,user_metadata').eq('user_metadata->>role', 'student');
-      if (error) {
-        studentList.innerHTML = '<span style="color:red;">Failed to load students</span>';
-        return;
-      }
-      if (!data || data.length === 0) {
-        studentList.innerHTML = '<span style="color:#aaa;">No students found.</span>';
-        return;
-      }
-      studentList.innerHTML = data.map(u => {
-        const name = u.user_metadata && (u.user_metadata.full_name || u.user_metadata.name) ? (u.user_metadata.full_name || u.user_metadata.name) : (u.email || 'Unknown');
-        return `<div style="margin-bottom:8px;padding:6px 0;border-bottom:1px solid #222;">` +
-          `<span style="color:#00f2ff;font-weight:bold;">${name}</span><br>` +
-          `<span style="color:#aaa;">${u.email}</span>` +
-          `</div>`;
-      }).join('');
-    }
-
-    (async function initChat() {
-      await fetchUserInfo();
-      await fetchMessages();
-      subscribeToMessages();
-      await showStudentsIfTeacher();
-    })();
-
-  </script>
-  <style>
     #chatBoxContainer {
       position: fixed;
       bottom: 30px;
@@ -505,6 +216,284 @@ document.getElementById('showChatBtn').addEventListener('click', function() {
         bottom: 2vw;
       }
     }
+  </style>
+</head>
+<body>
+  <h1>Teacher Broadcast to Multiple Students</h1>
+  <h2>Teacher Broadcast</h2>
+  <video id="localVideo" autoplay muted playsinline></video>
+  <video id="remoteVideo" autoplay playsinline></video>
+  <br>
+  <select id="roleSelect">
+    <option value="teacher">Teacher</option>
+    <option value="student">Student</option>
+  </select>
+  <button id="startBtn">Start Camera</button>
+  <button id="broadcastBtn" style="display:none;">Start Broadcast</button>
+  <button id="joinBtn" style="display:none;">Join Class</button>
+  <p class="info-text">Your video feed should appear above. Please allow camera access if prompted by your browser.</p>
+  <div id="videoContainer">
+    <video id="teacherVideo" autoplay playsinline muted></video>
+  </div>
+  <div id="status" class="status-message">Camera is off by default. Click 'Start Camera' to begin.</div>
+
+  <div id="studentListContainer" style="width:80%;max-width:640px;margin:20px auto 0 auto;padding:16px;background:#16213e;border-radius:8px;box-shadow:0 2px 8px #0002;display:none;">
+    <h2 style="color:#00f2ff;font-size:1.2em;margin-bottom:10px;">Logged-in Students</h2>
+    <div id="studentList" style="color:#fff;font-size:1em;"></div>
+  </div>
+
+  <button id="showChatBtn" style="width:80%;max-width:320px;margin:10px 0;background:#00f2ff;color:#222b45;font-weight:bold;border-radius:5px;cursor:pointer;display:block;">Show Chat</button>
+  <div id="chatBoxContainer" style="display:none;">
+    <div id="chatHeader">Student-Teacher Chat <span id="chatClose">×</span></div>
+    <div id="chatMessages"></div>
+    <div id="chatInputArea">
+      <input type="text" id="chatInput" placeholder="Type a message..." autocomplete="off" />
+      <button id="chatSend">Send</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script>
+    // --- CONFIG --- (Declare only once!)
+    const supabaseUrl = 'https://yssaagutrdkkjynvpjyz.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlzc2FhZ3V0cmRra2p5bnZwanl6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkxMTcyNzEsImV4cCI6MjA2NDY5MzI3MX0.Ai0MBlSmKQPYTbGzBzqWGk--ZtMQNvNaGXHICnnUt2Q';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    // --- VIDEO BROADCAST LOGIC ---
+    const localVideo = document.getElementById('localVideo');
+    const remoteVideo = document.getElementById('remoteVideo');
+    const roleSelect = document.getElementById('roleSelect');
+    const startBtn = document.getElementById('startBtn');
+    const broadcastBtn = document.getElementById('broadcastBtn');
+    const joinBtn = document.getElementById('joinBtn');
+    const videoElement = document.getElementById('teacherVideo');
+    const statusElement = document.getElementById('status');
+    const videoContainer = document.getElementById('videoContainer');
+
+    let localStream;
+    let role = 'teacher';
+    let peerConnections = {}; // For teacher: studentId -> RTCPeerConnection
+    let myId = Math.random().toString(36).substr(2, 9); // Simple random ID for demo
+
+    roleSelect.addEventListener('change', () => {
+      role = roleSelect.value;
+      if (role === 'teacher') {
+        broadcastBtn.style.display = '';
+        joinBtn.style.display = 'none';
+      } else {
+        broadcastBtn.style.display = 'none';
+        joinBtn.style.display = '';
+      }
+    });
+
+    async function startCamera() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        statusElement.textContent = 'getUserMedia is not supported by your browser.';
+        videoContainer.style.alignItems = 'center';
+        return;
+      }
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localVideo.srcObject = localStream;
+        videoElement.srcObject = localStream;
+        statusElement.textContent = 'Camera active.';
+        videoContainer.style.alignItems = 'stretch';
+      } catch (err) {
+        console.error('Error accessing media devices:', err);
+        videoContainer.style.alignItems = 'center';
+        statusElement.textContent = 'Error accessing camera: ' + err.message;
+      }
+    }
+    startBtn.onclick = startCamera;
+
+    broadcastBtn.onclick = async function() {
+      supabase.channel('public:signals')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'signals' }, async payload => {
+          const msg = payload.new;
+          if (msg.type === 'offer' && msg.target_id === 'teacher') {
+            const studentId = msg.sender_id;
+            const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+            peerConnections[studentId] = pc;
+            localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+            pc.onicecandidate = (event) => {
+              if (event.candidate) {
+                sendSignal('ice', event.candidate, studentId);
+              }
+            };
+            await pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(msg.data)));
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+            sendSignal('answer', answer, studentId);
+          } else if (msg.type === 'ice' && msg.target_id === 'teacher') {
+            const studentId = msg.sender_id;
+            if (peerConnections[studentId]) {
+              await peerConnections[studentId].addIceCandidate(new RTCIceCandidate(JSON.parse(msg.data)));
+            }
+          }
+        })
+        .subscribe();
+      alert('Broadcast started! Students can now join.');
+    };
+
+    joinBtn.onclick = async function() {
+      const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+      pc.ontrack = (event) => {
+        remoteVideo.srcObject = event.streams[0];
+      };
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          sendSignal('ice', event.candidate, 'teacher');
+        }
+      };
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      sendSignal('offer', offer, 'teacher');
+      supabase.channel('public:signals')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'signals' }, async payload => {
+          const msg = payload.new;
+          if (msg.target_id === myId) {
+            if (msg.type === 'answer') {
+              await pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(msg.data)));
+            } else if (msg.type === 'ice') {
+              await pc.addIceCandidate(new RTCIceCandidate(JSON.parse(msg.data)));
+            }
+          }
+        })
+        .subscribe();
+    };
+
+    async function sendSignal(type, data, target_id) {
+      await supabase.from('signals').insert([
+        { type, data: JSON.stringify(data), sender_role: role, sender_id: myId, target_id }
+      ]);
+    }
+
+    // --- CHAT LOGIC ---
+    const chatBox = document.getElementById('chatBoxContainer');
+    const chatHeader = document.getElementById('chatHeader');
+    const chatClose = document.getElementById('chatClose');
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const chatSend = document.getElementById('chatSend');
+
+    let currentUser = null;
+    let userName = 'Unknown';
+    let userRole = 'student'; // fallback
+    let userId = null;
+
+    async function fetchUserInfo() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        currentUser = user;
+        userId = user.id;
+        userName = user.user_metadata && user.user_metadata.full_name ? user.user_metadata.full_name : (user.email || 'Unknown');
+        userRole = user.user_metadata && user.user_metadata.role ? user.user_metadata.role : 'student';
+      }
+    }
+
+    async function fetchMessages() {
+      chatMessages.innerHTML = '<div style="color:#aaa;text-align:center;">Loading chat...</div>';
+      let { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .order('created_at', { ascending: true });
+      if (error) {
+        chatMessages.innerHTML = '<div style="color:red;text-align:center;">Failed to load messages</div>';
+        return;
+      }
+      chatMessages.innerHTML = '';
+      data.forEach(msg => appendMessage(msg, msg.sender_id === userId));
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function subscribeToMessages() {
+      supabase.channel('public:messages')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+          const msg = payload.new;
+          appendMessage(msg, msg.sender_id === userId);
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        })
+        .subscribe();
+    }
+
+    function appendMessage(msg, isOwn) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'chat-message' + (isOwn ? ' user' : ' bot');
+      const meta = document.createElement('div');
+      meta.style.fontSize = '0.82em';
+      meta.style.color = isOwn ? '#00f2ff' : '#0ff6';
+      meta.style.marginBottom = '2px';
+      meta.textContent = `${msg.sender_name} (${msg.sender_role})`;
+      const bubble = document.createElement('div');
+      bubble.className = 'chat-bubble';
+      bubble.textContent = msg.content;
+      msgDiv.appendChild(meta);
+      msgDiv.appendChild(bubble);
+      chatMessages.appendChild(msgDiv);
+    }
+
+    async function sendMessage() {
+      const content = chatInput.value.trim();
+      if (!content) return;
+      chatInput.value = '';
+      await supabase.from('messages').insert([
+        {
+          sender_id: userId,
+          sender_name: userName,
+          sender_role: userRole,
+          content: content
+        }
+      ]);
+    }
+
+    chatHeader.addEventListener('click', function(e) {
+      if (e.target === chatClose) return;
+      chatBox.classList.toggle('minimized');
+      if (!chatBox.classList.contains('minimized')) chatInput.focus();
+    });
+    chatClose.addEventListener('click', function() { chatBox.style.display = 'none'; });
+    document.getElementById('showChatBtn').addEventListener('click', function() {
+      chatBox.style.display = 'flex';
+    });
+    chatSend.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') sendMessage(); });
+
+    async function showStudentsIfTeacher() {
+      if (userRole !== 'teacher') {
+        document.getElementById('studentListContainer').style.display = 'none';
+        return;
+      }
+      const studentListContainer = document.getElementById('studentListContainer');
+      const studentList = document.getElementById('studentList');
+      studentListContainer.style.display = 'block';
+      studentList.innerHTML = '<span style="color:#aaa;">Loading students...</span>';
+      let { data, error } = await supabase.from('users').select('id,email,user_metadata').eq('user_metadata->>role', 'student');
+      if (error) {
+        studentList.innerHTML = '<span style="color:red;">Failed to load students</span>';
+        return;
+      }
+      if (!data || data.length === 0) {
+        studentList.innerHTML = '<span style="color:#aaa;">No students found.</span>';
+        return;
+      }
+      studentList.innerHTML = data.map(u => {
+        const name = u.user_metadata && (u.user_metadata.full_name || u.user_metadata.name) ? (u.user_metadata.full_name || u.user_metadata.name) : (u.email || 'Unknown');
+        return `<div style="margin-bottom:8px;padding:6px 0;border-bottom:1px solid #222;">` +
+          `<span style="color:#00f2ff;font-weight:bold;">${name}</span><br>` +
+          `<span style="color:#aaa;">${u.email}</span>` +
+          `</div>`;
+      }).join('');
+    }
+
+    (async function initChat() {
+      await fetchUserInfo();
+      await fetchMessages();
+      subscribeToMessages();
+      await showStudentsIfTeacher();
+    })();
+  </script>
+  <style>
+    /* ...your chat CSS remains unchanged... */
   </style>
 
 </body>
