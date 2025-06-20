@@ -646,6 +646,19 @@ teacherInfoError.textContent = 'Error saving teacher details: ' + error.message;
       window.location.href = "teachers_online.html"; // Changed from live.html - Please verify/update this filename
     }
 
+    function onUserLogin(user) {
+        if (user.role === 'student' && user.name === 'Student A') {
+            // Fetch Teacher A and Teacher B camera states
+            const teacherA = getUserByName('Teacher A');
+            const teacherB = getUserByName('Teacher B');
+            
+            // Show both cameras in "off" mode to Student A
+            showCamera(teacherA, { visibleTo: user, mode: 'off' });
+            showCamera(teacherB, { visibleTo: user, mode: 'off' });
+        }
+        // ...existing code...
+    }
+
   </script>
     <div style="text-align:center; margin-top:40px; margin-bottom:30px; font-size:1.2em; color:#00f2ff; font-style:italic; font-weight:bold;">
       Dedicated to Nature, My Dad - M.C.Ponnusamy - Who was an excellent teacher
@@ -653,3 +666,4 @@ teacherInfoError.textContent = 'Error saving teacher details: ' + error.message;
   </div>
 </body>
 </html>
+
